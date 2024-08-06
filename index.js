@@ -7,6 +7,10 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const dbPath = path.join(__dirname, "notes_app.db");
 
+const cors = require('cors');
+app.use(cors());
+
+
 app.use(express.json());
 
 let db = null;
@@ -86,3 +90,6 @@ app.get("/all_notes/:userId", async (request, response) => {
   const notes = await db.all(getNotes);
   response.send(notes);
 });
+
+
+

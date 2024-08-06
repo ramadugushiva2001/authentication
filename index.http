@@ -2,7 +2,7 @@
 GET http://localhost:3000/users
 ###
 
-POST http://localhost:3000/login
+POST http://localhost:3000/login 
 Content-Type: application/json
 
 {
@@ -15,9 +15,9 @@ POST http://localhost:3000/signup
 Content-Type: application/json
 
 {
-  "username":"shiva",
-  "password":"shiva123",
-  "email":"shiva2001@gmail.com"
+  "username":"kamal",
+  "password":"kamal123",
+  "email":"kamal2003@gmail.com"
 }
 ###
 
@@ -46,3 +46,7 @@ GET http://localhost:3000/all_notes/2
 //    is_trashed BOOLEAN DEFAULT 0, -- Foreign key to link notes with users
 //    FOREIGN KEY (user_id) REFERENCES users (id)
 //)
+
+
+
+
