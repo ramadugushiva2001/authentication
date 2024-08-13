@@ -4,13 +4,13 @@ const bcrypt = require("bcrypt");
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
 const jwt = require("jsonwebtoken");
+const cors = require('cors');
+
 const app = express();
 const dbPath = path.join(__dirname, "notes_app.db");
+const jwtSecret = "MY_SECRET_TOKEN"; // Define your secret here
 
-const cors = require('cors');
 app.use(cors());
-
-
 app.use(express.json());
 
 let db = null;
@@ -32,64 +32,56 @@ const initializeDBAndServer = async () => {
 
 initializeDBAndServer();
 
-// USERS API
-app.get("/users", async (request, response) => {
-  const selectUserQuery = `SELECT * FROM users`;
-  const dbUser = await db.all(selectUserQuery);
-  response.send(dbUser);
+// Error Handling Middleware
+const errorHandler = (err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something went wrong!");
+};
+
+// Apply middleware globally
+app.use(express.json());
+
+// SIGNUP API
+app.post("/signup", async (req, res) => {
+  try {
+    const { username, password, email } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const existingUser = await db.get("SELECT * FROM users WHERE username = ?", [username]);
+
+    if (existingUser) {
+      return res.status(401).send("User already exists");
+    }
+
+    await db.run("INSERT INTO users (username, password, email) VALUES (?, ?, ?)", [username, hashedPassword, email]);
+    res.send("User registered successfully");
+  } catch (error) {
+    res.status(500).send("Server Error");
+  }
 });
 
 // LOGIN API
-app.post("/login", async (request, response) => {
-  const { username, password } = request.body;
+app.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await db.get("SELECT * FROM users WHERE username = ?", [username]);
 
-  const selectUserQuery = `SELECT * FROM users WHERE username = '${username}'`;
-  const dbUser = await db.get(selectUserQuery);
-  if (dbUser === undefined) {
-    response.status(400).send("Invalid User");
-  } else {
-    const isPasswordMatched = await bcrypt.compare(password, dbUser.password);
-
-    if (isPasswordMatched === true) {
-      const payload = { username: username };
-      const jwtToken = jwt.sign(payload, "MY_SECRET_TOKEN");
-      response.send({ jwtToken });
-    } else {
-      response.status(400).send("Invalid Password");
+    if (!user) {
+      return res.status(400).send("Invalid User");
     }
+
+    const isPasswordMatched = await bcrypt.compare(password, user.password);
+    if (isPasswordMatched) {
+      const token = jwt.sign({ username }, jwtSecret);
+      res.json({ jwtToken: token });
+    } else {
+      res.status(400).send("Invalid Password");
+    }
+  } catch (error) {
+    res.status(500).send("Server Error");
   }
 });
 
-// REGISTER API
-app.post("/signup", async (request, response) => {
-  const { username, password, email } = request.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const selectUserQuery = `SELECT * FROM users WHERE username = '${username}'`;
-  const dbUser = await db.get(selectUserQuery);
-  if (dbUser !== undefined) {
-    response.status(401).send("User already exists");
-  } else {
-    const createNewUser = `INSERT INTO users (username, password, email) VALUES ('${username}', '${hashedPassword}', '${email}')`;
-    await db.run(createNewUser);
-    response.send("User registered successfully");
-  }
-});
+// Error Handling Middleware should be added after all routes
+app.use(errorHandler);
 
-// CREATE NOTE
-app.post("/notes", async (request, response) => {
-  const { title, content, archived, user_id } = request.body;
-  const createNoteQuery = `INSERT INTO notes (title, content, archived, user_id) VALUES ('${title}', '${content}', '${archived}', '${user_id}')`;
-  await db.run(createNoteQuery);
-  response.send("Note Added Successfully");
-});
-
-// GET NOTES
-app.get("/all_notes/:userId", async (request, response) => {
-  const { userId } = request.params;
-  const getNotes = `SELECT * FROM notes WHERE user_id='${userId}'`;
-  const notes = await db.all(getNotes);
-  response.send(notes);
-});
-
-
-
+module.exports = app;

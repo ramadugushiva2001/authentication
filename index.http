@@ -1,7 +1,4 @@
 
-GET http://localhost:3000/users
-###
-
 POST http://localhost:3000/login 
 Content-Type: application/json
 
@@ -15,38 +12,8 @@ POST http://localhost:3000/signup
 Content-Type: application/json
 
 {
-  "username":"kamal",
-  "password":"kamal123",
-  "email":"kamal2003@gmail.com"
+  "username":"vivek",
+  "password":"vivek123",
+  "email":"vivek2024@gmail.com"
 }
 ###
-
-POST http://localhost:3000/notes
-Content-Type: application/json
-
-{
-  "title":"complete todays task",
-  "content":"createa full stack application",
-  "archived" :"0",
-  "user_id":"2"
-}
-###
-
-GET http://localhost:3000/all_notes/2
-
-//{shiva:shiva123},
-//CREATE TABLE notes (
-//    id INTEGER PRIMARY KEY AUTOINCREMENT,
-//    title TEXT,
-//    content TEXT,
-//    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//    archived BOOLEAN DEFAULT 0,
-//    user_id INTEGER, 
-//    is_trashed BOOLEAN DEFAULT 0, -- Foreign key to link notes with users
-//    FOREIGN KEY (user_id) REFERENCES users (id)
-//)
-
-
-
-
